@@ -64,11 +64,18 @@ async def insert_val_min(val):
         ins = update(rev).where(rev.c.calendar == val[1]).values(full_foxyess2020=val[2], hard_foxyess2020=val[3],soft_foxyess2020=val[4])
     engine.execute(ins)
     engine.dispose()
+    await update_datas(val[1])
 
 async def add_video(vid):
     engine = await connect()
     await check(vid[0])
-    # print(vid[1])
     ins = update(rev).where(rev.c.calendar == vid[0]).values(record = vid[1])
     engine.execute(ins)
     engine.dispose()
+
+async def update_datas(info):
+    engine = await connect()
+    ins = rev.select().where(rev.c.calendar == info[0])
+    data = engine.execute(ins)
+    print(data)
+    print(ins)
