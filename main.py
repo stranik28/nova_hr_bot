@@ -117,9 +117,6 @@ def register_handlers_main(dp: Dispatcher):
     dp.register_message_handler(full,state=SendRev.full_rev)
 
     dp.register_message_handler(choose_video,state=SendRev.send_video)
-    # tt = types.ContentType.VIDEO
-    # tt = types.ContentType.PHOTO
-    # tt = types.ContentType.AUDIO
     dp.register_message_handler(download_video,state=SendRev.pined_video,content_types=["photo","video","audio"])
 
 register_handlers_main(dp)
