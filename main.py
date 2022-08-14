@@ -83,6 +83,7 @@ async def full(message: types.Message, state: FSMContext):
     await insert_val_min(data)
     await message.answer("Запись добавлена", reply_markup=hr_rev)
     await state.finish()
+    await SendRev.login.set()
 
 async def choose_video(message: types.Message, state: FSMContext):
     but = await state.get_data()
@@ -105,6 +106,7 @@ async def download_video(message, state: FSMContext):
     vid.append(file_id['file_unique_id'])
     await add_video(vid)
     await state.finish()
+    await SendRev.login.set()
 
 def register_handlers_main(dp: Dispatcher):
     dp.register_message_handler(cmd_cancel, commands="cancel", state="*")
