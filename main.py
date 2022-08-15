@@ -138,7 +138,7 @@ async def change_params(message, state:FSMContext):
 # print(birthday)
     two = datetime.datetime.strptime(birthday,"%d/%m/%Y")  # преобразование даты из строки в дату
     hour = (today - two).days*24+((today - two).seconds//3600)
-    if hour < 0:
+    if (hour < 0) or (day <0) or (day > 31) or (month < 0) or (month > 12):
         await message.answer("Вы ввели неверную дату")
         return
     # print(hour)
