@@ -1,5 +1,6 @@
+from cgitb import text
 from importlib.metadata import metadata
-from buttons import hr_rev,get_events, change_parametrs_but
+from buttons import hr_rev,get_events, change_parametrs_but, day_but
 from config import api
 import logging
 from aiogram import Bot, Dispatcher, executor, types
@@ -19,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 class SendRev(StatesGroup):
     #Add new note
     login = State()
+    choose_date = State()
     choose_event = State()
     hard_rev = State()
     soft_rev = State()
@@ -54,13 +56,9 @@ async def start_fn(message: types.Message):
 async def rev(message: types.Message, state: FSMContext):
     # print(message.text)
     if message.text == "Добавить информацию о собеседовании":
-        but,but1 = await get_events(hours = None)
-        if len(but1) == 0:
-            await message.answer("Нет доступных собеседований")
-            return
-        await message.answer("Выберете нужное собеседование", reply_markup=but)
+        await message.answer("Выберите дату собеседования, выберете с помощью кнопок или укажите в формате в формате день месяц через точку ex: 10.02", reply_markup=day_but)
         await SendRev.next()
-        await state.update_data(events=but1)
+        # await state.update_data(events=but1)
     elif message.text == "Добавить запись собеседования":
         but,but1 = await get_events(hours = None)
         if len(but1) == 0:
@@ -68,11 +66,37 @@ async def rev(message: types.Message, state: FSMContext):
             return
         await message.answer("Выберете нужное собеседование", reply_markup=but)
         await SendRev.send_video.set()
-        await state.update_data(events=but1)
     elif message.text == "Изменить информацию о собеседовании":
         await message.answer("Укажите дату собеседования в формате день месяц через точку ex: 10.02")
         await SendRev.change_note.set()
         
+
+async def choose_date(message: types.Message, state: FSMContext):
+    if message.text == "Сегодня":
+        but,but1 = await get_events(hours = None)
+        if len(but1) == 0:
+            await message.answer("Нет доступных собеседований")
+            return
+        await message.answer("Выберете нужное собеседование", reply_markup=but)
+    else:
+        day,month = message.text.split('.')
+        today = datetime.datetime.now()
+        birthday = str(day)+"/"+str(month)+"/"+str(today.year)
+        two = datetime.datetime.strptime(birthday,"%d/%m/%Y")  # преобразование даты из строки в дату
+        hour = (today - two).days*24+((today - two).seconds//3600)
+        if (int(hour) < 0) or (int(day) <0) or (int(day) > 31) or (int(month) < 0) or (int(month) > 12):
+            await message.answer("Вы ввели неверную дату")
+            return
+        but,but1 = await get_events(hours = hour)
+        if len(but1) == 0:
+            await message.answer("Нет доступных собеседований")
+            return
+        await state.update_data(events=but1)
+        await message.answer("Выберете нужное собеседование", reply_markup=but)
+    await SendRev.next()
+    await state.update_data(events=but1)
+
+
 
 async def chose_event(message: types.Message, state: FSMContext):
     but = await state.get_data()
@@ -135,10 +159,9 @@ async def change_params(message, state:FSMContext):
     day,month = message.text.split('.')
     today = datetime.datetime.now()
     birthday = str(day)+"/"+str(month)+"/"+str(today.year)
-# print(birthday)
     two = datetime.datetime.strptime(birthday,"%d/%m/%Y")  # преобразование даты из строки в дату
     hour = (today - two).days*24+((today - two).seconds//3600)
-    if (hour < 0) or (day <0) or (day > 31) or (month < 0) or (month > 12):
+    if (int(hour) < 0) or (int(day) <0) or (int(day) > 31) or (int(month) < 0) or (int(month) > 12):
         await message.answer("Вы ввели неверную дату")
         return
     # print(hour)
@@ -221,6 +244,7 @@ def register_handlers_main(dp: Dispatcher):
 
 def register_handlers_add_note(dp: Dispatcher):
     dp.register_message_handler(rev,state=SendRev.login)
+    dp.register_message_handler(choose_date,state=SendRev.choose_date)
     dp.register_message_handler(chose_event,state=SendRev.choose_event)
     dp.register_message_handler(hard,state=SendRev.hard_rev)
     dp.register_message_handler(soft,state=SendRev.soft_rev)

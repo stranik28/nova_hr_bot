@@ -12,6 +12,10 @@ hr_rev.add(button_hello)
 hr_rev.add(button_hello1)
 hr_rev.add(button_hello2)
 
+button_today = KeyboardButton("Сегодня")
+day_but = ReplyKeyboardMarkup(resize_keyboard=True)
+day_but.add(button_today)
+
 
 async def get_events(hours):
     if hours is None:

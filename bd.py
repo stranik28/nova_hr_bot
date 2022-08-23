@@ -172,4 +172,4 @@ async def update_info(sobes,type,text,usr):
     await update_datas(sobes)
 
 
-create_table()
+# create_table()
